@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "95929505461",
+    "project_id": "wifi-tracker-1213a",
+    "storage_bucket": "wifi-tracker-1213a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:95929505461:android:ffec9fc650b4111bc9d0fc",
+        "android_client_info": {
+          "package_name": "com.example.untitled16"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCELw2cY3zYpOc3U_BJZPEg_BpV91qEGyg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:95929505461:android:6a87fa0ec892a8c3c9d0fc",
+        "android_client_info": {
+          "package_name": "com.example.wifi_tracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCELw2cY3zYpOc3U_BJZPEg_BpV91qEGyg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,26 @@
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "wifi-tracker-1213a",
+          "appId": "1:95929505461:android:ffec9fc650b4111bc9d0fc",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "wifi-tracker-1213a",
+          "configurations": {
+            "android": "1:95929505461:android:ffec9fc650b4111bc9d0fc",
+            "ios": "1:95929505461:ios:bdc47ec76ed89dc1c9d0fc"
+          }
+        }
+      }
+    }
+  }
+}
