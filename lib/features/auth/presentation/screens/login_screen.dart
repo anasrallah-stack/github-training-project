@@ -25,23 +25,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   void dispose() { _emailCtrl.dispose(); _passCtrl.dispose(); super.dispose(); }
 
-  Future<void> _login() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() { _loading = true; _error = null; });
-    final ok = await ref.read(currentUserProvider.notifier).login(
-      _emailCtrl.text.trim(), _passCtrl.text,
-    );
-    if (!mounted) return;
-    if (!ok) setState(() { _error = AppStrings.loginFailed; });
-    setState(() => _loading = false);
-  }
 
-  Future<void> _googleSignIn() async {
-    setState(() { _loading = true; _error = null; });
-    await ref.read(currentUserProvider.notifier).signInWithGoogle();
-    if (!mounted) return;
-    setState(() => _loading = false);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +65,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 6),
                 Center(child: Text('تسجيل الدخول إلى حسابك', style: TextStyle(
                   fontFamily: 'Cairo', fontSize: 14,
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  color: isDark ? AppColors.textDark : AppColors.textSecondaryLight,
                 ))),
                 const SizedBox(height: 40),
 
@@ -191,5 +175,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
       ),
     );
+  }
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() { _loading = true; _error = null; });
+    final ok = await ref.read(currentUserProvider.notifier).login(
+      _emailCtrl.text.trim(), _passCtrl.text,
+    );
+    if (!mounted) return;
+    if (!ok) setState(() { _error = AppStrings.loginFailed; });
+    setState(() => _loading = false);
+  }
+
+  Future<void> _googleSignIn() async {
+    setState(() { _loading = true; _error = null; });
+    await ref.read(currentUserProvider.notifier).signInWithGoogle();
+    if (!mounted) return;
+    setState(() => _loading = false);
   }
 }
