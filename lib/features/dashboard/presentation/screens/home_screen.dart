@@ -4,12 +4,15 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:untitled16/features/dashboard/presentation/widgets/empty_session_card.dart';
+import 'package:untitled16/features/dashboard/presentation/widgets/session_tile.dart';
+import 'package:untitled16/features/dashboard/presentation/widgets/stat_card.dart';
+import 'package:untitled16/features/dashboard/presentation/widgets/tracking_status_card.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/services/background_service.dart';
 import '../../../../core/services/wifi_tracking_service.dart';
 import '../../../../core/utils/date_helper.dart';
-import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../tracking/presentation/providers/tracking_provider.dart';
 import '../../../../routes/route_names.dart';
@@ -21,7 +24,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen>
-    with WidgetsBindingObserver {  // ✅ لمراقبة حالة التطبيق
+    with WidgetsBindingObserver {
 
   late Timer _clockTimer;
   DateTime _now = DateTime.now();
@@ -30,7 +33,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this); // ← أضف
+    WidgetsBinding.instance.addObserver(this);
     _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() => _now = DateTime.now());
     });
@@ -44,19 +47,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     super.dispose();
   }
 
-  // ✅ يُستدعى عند تغيّر حالة التطبيق
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.resumed:
-      // التطبيق رجع للواجهة — ابدأ الـ Service
         FlutterBackgroundService().startService();
         break;
       case AppLifecycleState.paused:
-      // التطبيق انتقل للخلفية — لا تفعل شيء، Service تضل شغالة
         break;
       case AppLifecycleState.detached:
-      // ✅ التطبيق أُغلق نهائياً — أوقف الـ Service
         stopBackgroundService();
         break;
       default:
@@ -76,11 +75,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       await prefs.setString('work_ssid', user.workWifiSsid!);
     }
 
-    // ابدأ الـ foreground tracking
     final service = ref.read(wifiTrackingServiceProvider);
     await service.initialize(user.uid, user.workWifiSsid, deviceId);
 
-    // ابدأ الـ background service
     await startBackgroundService();
   }
 
@@ -144,7 +141,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-                child: _TrackingStatusCard(hasActive: hasActive, user: user, isDark: isDark),
+                child: TrackingStatusCard(hasActive: hasActive, user: user, isDark: isDark),
               ),
             ),
 
@@ -153,7 +150,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
                 child: Row(
                   children: [
-                    Expanded(child: _StatCard(
+                    Expanded(child: StatCard(
                       label: AppStrings.todayHours,
                       value: DateHelper.formatHours(todayHours),
                       icon: Icons.today_rounded,
@@ -161,7 +158,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       isDark: isDark,
                     )),
                     const SizedBox(width: 12),
-                    Expanded(child: _StatCard(
+                    Expanded(child: StatCard(
                       label: AppStrings.weeklyHours,
                       value: DateHelper.formatHours(weekHours),
                       icon: Icons.date_range_rounded,
@@ -195,7 +192,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 ? SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: _EmptySessionsCard(isDark: isDark),
+                child: EmptySessionsCard(isDark: isDark),
               ),
             )
                 : SliverPadding(
@@ -206,7 +203,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     final s = sessions[sessions.length - 1 - i];
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 8),
-                      child: _SessionTile(session: s, isDark: isDark),
+                      child: SessionTile(session: s, isDark: isDark),
                     );
                   },
                   childCount: sessions.length.clamp(0, 5),
@@ -222,7 +219,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 }
 
-// ── Widgets ──────────────────────────────────────────────
 
 class _HeroClockCard extends StatelessWidget {
   final DateTime now;
@@ -286,222 +282,3 @@ class _HeroClockCard extends StatelessWidget {
   }
 }
 
-class _TrackingStatusCard extends StatelessWidget {
-  final bool hasActive;
-  final UserEntity? user;
-  final bool isDark;
-  const _TrackingStatusCard({required this.hasActive, required this.user, required this.isDark});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.cardDark : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: hasActive ? AppColors.success.withOpacity(0.4)
-              : (isDark ? AppColors.borderDark : AppColors.borderLight),
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44, height: 44,
-            decoration: BoxDecoration(
-              color: (hasActive ? AppColors.success : AppColors.warning).withOpacity(0.12),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              hasActive ? Icons.wifi_rounded : Icons.wifi_off_rounded,
-              color: hasActive ? AppColors.success : AppColors.warning, size: 22,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  hasActive ? AppStrings.tracking : AppStrings.notTracking,
-                  style: TextStyle(
-                    fontFamily: 'Cairo', fontSize: 15, fontWeight: FontWeight.w700,
-                    color: hasActive ? AppColors.success
-                        : (isDark ? AppColors.textDark : AppColors.textLight),
-                  ),
-                ),
-                Text(
-                  hasActive ? '${AppStrings.connectedTo} ${user?.workWifiSsid ?? 'Wi-Fi'}'
-                      : 'في انتظار الاتصال بشبكة العمل',
-                  style: TextStyle(
-                    fontFamily: 'Cairo', fontSize: 12,
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (user != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(user!.fullName.split(' ').first, style: const TextStyle(
-                fontFamily: 'Cairo', fontSize: 12,
-                color: AppColors.primary, fontWeight: FontWeight.w600,
-              )),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  final String label, value;
-  final IconData icon;
-  final Color color;
-  final bool isDark;
-  const _StatCard({required this.label, required this.value, required this.icon,
-    required this.color, required this.isDark});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.cardDark : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isDark ? AppColors.borderDark : AppColors.borderLight),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 36, height: 36,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: color, size: 18),
-          ),
-          const SizedBox(height: 12),
-          Text(value, style: const TextStyle(
-            fontFamily: 'Cairo', fontSize: 26, fontWeight: FontWeight.w800,
-          )),
-          Text(label, style: TextStyle(
-            fontFamily: 'Cairo', fontSize: 12,
-            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-          )),
-        ],
-      ),
-    );
-  }
-}
-
-class _SessionTile extends StatelessWidget {
-  final dynamic session;
-  final bool isDark;
-  const _SessionTile({required this.session, required this.isDark});
-
-  @override
-  Widget build(BuildContext context) {
-    final start = DateHelper.formatTime(session.startTime);
-    final end = session.endTime != null ? DateHelper.formatTime(session.endTime!) : 'جارٍ...';
-    final dur = DateHelper.formatDuration(session.duration);
-    final active = session.isActive;
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.cardDark : Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: active ? AppColors.success.withOpacity(0.3)
-              : (isDark ? AppColors.borderDark : AppColors.borderLight),
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40, height: 40,
-            decoration: BoxDecoration(
-              color: (active ? AppColors.success : AppColors.primary).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              active ? Icons.play_arrow_rounded : Icons.check_circle_outline_rounded,
-              color: active ? AppColors.success : AppColors.primary, size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('$start  ←  $end', style: const TextStyle(
-                  fontFamily: 'Cairo', fontSize: 13, fontWeight: FontWeight.w600,
-                )),
-                Text(session.wifiSsid, style: TextStyle(
-                  fontFamily: 'Cairo', fontSize: 11,
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                )),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(dur, style: const TextStyle(
-                fontFamily: 'Cairo', fontSize: 14, fontWeight: FontWeight.w700,
-              )),
-              if (active)
-                Container(
-                  margin: const EdgeInsets.only(top: 2),
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.success.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Text('مباشر', style: TextStyle(
-                    fontFamily: 'Cairo', fontSize: 10, color: AppColors.success,
-                  )),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EmptySessionsCard extends StatelessWidget {
-  final bool isDark;
-  const _EmptySessionsCard({required this.isDark});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.cardDark : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isDark ? AppColors.borderDark : AppColors.borderLight),
-      ),
-      child: Column(children: [
-        Icon(Icons.work_history_outlined, size: 44,
-            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
-        const SizedBox(height: 12),
-        const Text(AppStrings.noSessions, style: TextStyle(
-          fontFamily: 'Cairo', fontSize: 15, fontWeight: FontWeight.w600,
-        )),
-        const SizedBox(height: 6),
-        Text('اتصل بشبكة Wi-Fi الخاصة بالعمل لبدء التتبع', style: TextStyle(
-          fontFamily: 'Cairo', fontSize: 12,
-          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-        ), textAlign: TextAlign.center),
-      ]),
-    );
-  }
-}
