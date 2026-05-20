@@ -137,8 +137,7 @@ class WifiTrackingService {
     _activeSession = null;
   }
 
-  /// ✅ عند إغلاق التطبيق — يوقف الـ foreground polling
-  /// لكن الـ background service يكمل يشتغل
+
   Future<void> stopForeground() async {
     _pollTimer?.cancel();
     _initialized = false;
@@ -148,7 +147,6 @@ class WifiTrackingService {
     }
   }
 
-  /// ✅ إيقاف كل شيء — يُستدعى عند تسجيل الخروج
   Future<void> stopAll() async {
     _pollTimer?.cancel();
 
@@ -156,13 +154,11 @@ class WifiTrackingService {
       await _stopTracking();
     }
 
-    // أبلّغ الـ background service بالإيقاف
     try {
       final bgService = FlutterBackgroundService();
       bgService.invoke('stop');
     } catch (_) {}
 
-    // أبلّغ Android
     try {
       await _trackingChannel.invokeMethod('stopTracking');
     } catch (_) {}
@@ -179,7 +175,6 @@ class WifiTrackingService {
 
   void updateWorkSsid(String ssid) {
     _workSsid = ssid;
-    // أبلّغ الـ background service بالـ SSID الجديد
     try {
       final bgService = FlutterBackgroundService();
       bgService.invoke('updateSsid', {'ssid': ssid});
