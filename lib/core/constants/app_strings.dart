@@ -73,7 +73,6 @@ class AppStrings {
     'الأربعاء',
     'الخميس',
     'الجمعة',
-
   ];
 
   static const daysShort = [
