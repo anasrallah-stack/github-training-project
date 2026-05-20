@@ -74,7 +74,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
                   )),
                   const SizedBox(height: 6),
                   Text('تتبع ساعات عملك تلقائياً', style: TextStyle(
-                    fontFamily: 'Rial', fontSize: 14, color: AppColors.textDark.withOpacity(0.5),
+                    fontFamily: 'Rail', fontSize: 14, color: AppColors.textDark.withOpacity(0.5),
                   )),
                   const SizedBox(height: 48),
                   SizedBox(
