@@ -91,7 +91,7 @@ class AppStrings {
 
   // Errors
   static const emailRequired = 'البريد الإلكتروني مطلوب';
-  static const invalidEmail = 'البريد الإلكتروني غير صالح';
+  static const invalidEmail = 'البريد الإلكتروني غير موجود';
   static const passwordRequired = 'كلمة المرور مطلوبة';
   static const passwordTooShort = 'كلمة المرور قصيرة جداً (6 أحرف على الأقل)';
   static const nameRequired = 'الاسم مطلوب';
